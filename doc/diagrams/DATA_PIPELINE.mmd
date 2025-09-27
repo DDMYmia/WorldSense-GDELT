@@ -1,0 +1,10 @@
+flowchart LR
+  EB[EventBridge\nrate(15 minutes)] --> L_fetch[Lambda\ngdelt-fetch-clean]
+  L_fetch --> S3D[(S3\ngdelt-processed-worldsense)]
+  S3D --> L_index[Lambda\ngdelt-indexer]
+  L_index --> OS[(OpenSearch\nworldsense-gdelt-os-dev)]
+  OS --> L_api[Lambda\ngdelt-api]
+  L_api --> APIV2[API Gateway v2\n82z3xjob1g]
+  APIV2 --> CF[CloudFront\nE3MJ8UIOB3UH8Q]
+  CF --> User[Browser]
+

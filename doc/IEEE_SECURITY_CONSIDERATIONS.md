@@ -37,7 +37,7 @@ The platform supports multi-factor authentication (MFA), requiring users and adm
 ## E. Security Logging and Monitoring
 
 ### 1) CloudWatch Log Monitoring
-Using Amazon CloudWatch, the platform collects and analyzes API call logs, Lambda execution logs, and OpenSearch query logs in real time. All abnormal behavior and security events are recorded in CloudWatch Logs and trigger alerts, helping the team respond to potential security threats promptly.
+Using Amazon CloudWatch, the platform collects and analyzes API call logs, Lambda execution logs, and OpenSearch query logs in real time. Current log groups include `/aws/lambda/gdelt-api`, `/aws/lambda/gdelt-indexer`, and `/aws/lambda/gdelt-fetch-clean`. All abnormal behavior and security events are recorded in CloudWatch Logs and trigger alerts, helping the team respond to potential security threats promptly.
 
 ### 2) Anomaly Detection
 Combining CloudWatch with AWS GuardDuty, the platform monitors potential security anomalies and potential attacks, promptly identifying and preventing threats such as DDoS attacks and unauthorized access. Automated response capabilities through Lambda functions ensure security responses occur within seconds of threat detection.

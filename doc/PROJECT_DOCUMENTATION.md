@@ -188,7 +188,7 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
 
 #### Buckets
 - **my-worldsense-bucket**: Frontend static website hosting
-  - Versioning: Disabled
+  - Versioning: Enabled
   - Public access: Configured for web hosting
   
 - **gdelt-processed-worldsense**: Processed data storage
@@ -209,10 +209,10 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
 
 #### Cluster Configuration
 - **Instance Type**: t3.small.search
-- **Instance Count**: 3 data nodes
+- **Instance Count**: 2 data nodes
 - **Dedicated Master Enabled**: true
 - **Dedicated Master Type**: t3.small.search
-- **Dedicated Master Count**: 3
+- **Dedicated Master Count**: 2
 - **Zone Awareness**: Disabled
 - **Multi-AZ with Standby**: Disabled
 
@@ -272,7 +272,7 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
 - **Function Name**: gdelt-fetch-clean
 - **Runtime**: python3.13
 - **Memory Size**: 512 MB
-- **Timeout**: 60 seconds
+- **Timeout**: 300 seconds
 - **Environment Variables**:
   - PROC_BUCKET: gdelt-processed-worldsense
   - OPENSEARCH_SECRET_NAME: opensearch/worldsense/indexer
@@ -351,7 +351,7 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
 #### Log Groups
 - **/aws/lambda/gdelt-api**
 - **/aws/lambda/gdelt-indexer**
-- **/aws/lambda/temp-delete-index**
+- **/aws/lambda/gdelt-fetch-clean**
 
 ---
 

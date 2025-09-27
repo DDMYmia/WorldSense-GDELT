@@ -1,0 +1,12 @@
+flowchart TB
+  IAM[IAM Roles\nleast privilege] --> L_api
+  IAM --> L_index
+  IAM --> L_fetch
+  SM[Secrets Manager\nopensearch/worldsense/indexer] --> L_api
+  CW[CloudWatch\nlogs + billing alert] --> Team[Ops]
+  CF[CloudFront HTTPS] --> User
+  S3[my-worldsense-bucket\nOAC] --> CF
+  Cognito[User Pool\nMFA optional] --> User
+  NACL[VPC default] -.-> OS
+  SG[Security Groups] -.-> OS
+

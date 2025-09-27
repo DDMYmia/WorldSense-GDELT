@@ -1,0 +1,48 @@
+flowchart TD
+  subgraph Client
+    A[Browser]
+  end
+
+  subgraph CDN
+    CF[CloudFront E3MJ8UIOB3UH8Q]
+  end
+
+  subgraph Storage
+    S3[my-worldsense-bucket]
+    S3D[gdelt-processed-worldsense]
+  end
+
+  subgraph API
+    APIV2[API Gateway HTTP v2 (82z3xjob1g)]
+    L_api[Lambda gdelt-api]
+  end
+
+  subgraph DataPipeline
+    EB[EventBridge GDELTFetchEvery15min]
+    L_fetch[Lambda gdelt-fetch-clean]
+    L_index[Lambda gdelt-indexer]
+    SQSQ[gdelt-index-queue]
+    SQSQDLQ[gdelt-index-dlq]
+  end
+
+  subgraph Search
+    OS[OpenSearch worldsense-gdelt-os-dev\n2 x t3.small.search + 2 masters\n10GB gp3]
+    Secret[Secrets Manager\nopensearch/worldsense/indexer]
+  end
+
+  subgraph Identity
+    Cognito[User Pool worldsense-users]
+  end
+
+  A --> CF
+  CF --> S3
+  CF --> APIV2
+  APIV2 --> L_api
+  L_api --> OS
+  Secret -.-> L_api
+  EB --> L_fetch
+  L_fetch --> S3D
+  S3D --> L_index
+  L_index --> OS
+  Cognito -.-> A
+

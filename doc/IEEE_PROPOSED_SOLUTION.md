@@ -30,7 +30,7 @@ Amazon DynamoDB provides serverless NoSQL database capabilities for user managem
 
 ### 4) Search and Analytics Engine
 
-Amazon OpenSearch Service functions as the platform's core analytical engine, optimized for cost efficiency while maintaining query performance requirements. The cluster configuration underwent comprehensive optimization through strategic instance type selection, node count reduction, and feature optimization. The current implementation utilizes cost-effective instance types for both data and master nodes.
+Amazon OpenSearch Service functions as the platform's core analytical engine, optimized for cost efficiency while maintaining query performance requirements. The cluster configuration underwent comprehensive optimization through strategic instance type selection, node count reduction, and feature optimization. The current implementation utilizes 2 t3.small.search data nodes and 2 dedicated masters (t3.small.search) with 10GB gp3 per node.
 
 Index configuration employs pre-defined mappings that optimize query performance and storage efficiency across multiple data types. Date fields utilize specific formatting for efficient time-range queries, while geo_point fields enable spatial proximity searches essential for geographic analysis.
 
