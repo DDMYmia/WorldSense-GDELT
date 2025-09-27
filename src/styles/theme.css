@@ -1,0 +1,29 @@
+:root {
+  --color-bg: #0b0d10;
+  --color-surface: #14171a;
+  --color-text: #e6e9ef;
+  --color-muted: #9aa4b2;
+  --color-accent: #4f8cff;
+  --color-accent-2: #20c997;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg: #ffffff;
+    --color-surface: #f5f7fb;
+    --color-text: #111315;
+    --color-muted: #57606a;
+    --color-accent: #2f6bff;
+    --color-accent-2: #10b981;
+  }
+}
+
+body { background: var(--color-bg); color: var(--color-text); }
+
+
+
+
+
+
+
+

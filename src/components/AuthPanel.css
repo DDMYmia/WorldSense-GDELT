@@ -1,0 +1,143 @@
+.auth-panel-fixed {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 280px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.auth-header {
+  padding: 12px 16px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.auth-header h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.auth-content {
+  padding: 12px 16px;
+}
+
+.auth-field {
+  margin-bottom: 8px;
+}
+
+.auth-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.auth-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.auth-input:focus {
+  border-color: #667eea;
+}
+
+.auth-error {
+  color: #dc3545;
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding: 4px 8px;
+  background: #fef2f2;
+  border-radius: 4px;
+  border-left: 3px solid #dc3545;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.auth-button {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-button-primary {
+  background: #667eea;
+  color: white;
+}
+
+.auth-button-primary:hover:not(:disabled) {
+  background: #5a6fd8;
+}
+
+.auth-button-secondary {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.auth-button-secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.auth-button-signup {
+  width: 100%;
+  background: #10b981;
+  color: white;
+  margin-top: 8px;
+}
+
+.auth-button-signup:hover:not(:disabled) {
+  background: #059669;
+}
+
+.auth-button-signout {
+  width: 100%;
+  background: #dc3545;
+  color: white;
+}
+
+.auth-button-signout:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.auth-signup-note {
+  text-align: center;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+.welcome-message {
+  text-align: center;
+  font-size: 13px;
+  color: #374151;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f0f9ff;
+  border-radius: 4px;
+  border-left: 3px solid #667eea;
+}
