@@ -268,12 +268,16 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
   - LOG_LEVEL: DEBUG
 - **Role**: gdelt-indexer-role
 
-#### data-expander-2015 Function
-- **Function Name**: data-expander-2015
-- **Runtime**: nodejs18.x
+#### gdelt-fetch-clean Function
+- **Function Name**: gdelt-fetch-clean
+- **Runtime**: python3.13
+- **Memory Size**: 512 MB
+- **Timeout**: 60 seconds
 - **Environment Variables**:
-  - INDEX_NAME: gdelt-lab-v1
+  - PROC_BUCKET: gdelt-processed-worldsense
+  - OPENSEARCH_SECRET_NAME: opensearch/worldsense/indexer
 - **Role**: gdelt-lambda-role
+
 
 ### 6. API Gateway
 
@@ -345,7 +349,6 @@ WorldSense-GDELT is a comprehensive global event perception and analysis platfor
 - **billing alert**: Threshold \$3.00, Current \$9.81, State: ALARM
 
 #### Log Groups
-- **/aws/lambda/data-expander-2015**
 - **/aws/lambda/gdelt-api**
 - **/aws/lambda/gdelt-indexer**
 - **/aws/lambda/temp-delete-index**
@@ -585,9 +588,10 @@ deploy_lambda_functions() {
         fi
     fi
     
-    # Deploy data-expander function
-    if aws lambda get-function --function-name data-expander-2015 --region us-east-1 --profile 810731468776 &>/dev/null; then
-        log_info "Checking data-expander-2015 function status..."
+    # Deploy gdelt-fetch-clean function
+    if [ -f "$PROJECT_ROOT/src/lambda/gdelt-fetch-clean.py" ]; then
+        log_info "Updating gdelt-fetch-clean Lambda function..."
+        cd "$PROJECT_ROOT/src/lambda"
         # Update logic can be added here
     fi
 }
@@ -693,7 +697,7 @@ RAW_DATA_BUCKET=gdelt-raw-worldsense
 # Lambda Function Configuration
 API_FUNCTION_NAME=gdelt-api
 INDEXER_FUNCTION_NAME=gdelt-indexer
-EXPANDER_FUNCTION_NAME=data-expander-2015
+FETCH_CLEAN_FUNCTION_NAME=gdelt-fetch-clean
 
 # API Gateway Configuration
 API_GATEWAY_ID=sqeg4ixx58
@@ -907,7 +911,7 @@ AWS_SECRET_ACCESS_KEY_DEV  # Development AWS Secret Key
 #### Log Groups
 - **/aws/lambda/gdelt-api**: API function logs
 - **/aws/lambda/gdelt-indexer**: Indexer function logs
-- **/aws/lambda/data-expander-2015**: Data processing logs
+- **/aws/lambda/gdelt-fetch-clean**: Data collection and cleaning logs
 
 ### System Health Checks
 
@@ -974,7 +978,7 @@ echo "3. Lambda Functions Test"
 # Test Lambda function existence
 run_test "gdelt-api Lambda Function" "aws lambda get-function --function-name gdelt-api --profile 810731468776 --region us-east-1"
 run_test "gdelt-indexer Lambda Function" "aws lambda get-function --function-name gdelt-indexer --profile 810731468776 --region us-east-1"
-run_test "data-expander-2015 Lambda Function" "aws lambda get-function --function-name data-expander-2015 --profile 810731468776 --region us-east-1"
+run_test "gdelt-fetch-clean Lambda Function" "aws lambda get-function --function-name gdelt-fetch-clean --profile 810731468776 --region us-east-1"
 
 echo ""
 echo "4. OpenSearch Test"
