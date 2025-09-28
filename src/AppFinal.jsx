@@ -26,7 +26,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const API_BASE = "https://8p15o14kp9.execute-api.us-east-1.amazonaws.com/prod";
+const API_BASE = import.meta.env.VITE_API_BASE;
 console.log('API_BASE:', API_BASE);
 console.log('App Version: 3.0.0 - Final Clean Version');
 console.log('Build Time:', new Date().toISOString());
@@ -70,12 +70,22 @@ function useFetch(url) {
 function MapEventHandler({ onBboxChange }) {
   const map = useMap();
 
+  function debounce(func, delay) {
+  let timeout;
+  return function(...args) {
+    const context = this;
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(context, args), delay);
+  };
+}
   useEffect(() => {
     const handleMoveEnd = () => {
       const bounds = map.getBounds();
       const bbox = `${bounds.getWest().toFixed(5)},${bounds.getSouth().toFixed(5)},${bounds.getEast().toFixed(5)},${bounds.getNorth().toFixed(5)}`;
-      onBboxChange(bbox);
+   //   console.log("Map moved, new bbox:", bbox);
+      onBboxChange(bbox, map.getCenter());
     };
+
 
     map.on('moveend', handleMoveEnd);
     handleMoveEnd(); // Initial call
@@ -83,15 +93,22 @@ function MapEventHandler({ onBboxChange }) {
     return () => {
       map.off('moveend', handleMoveEnd);
     };
-  }, [map, onBboxChange]);
+  }, [map]);
 
   return null; // This component doesn't render anything
 }
 
 // Map Component
-function Map({ geojson, onBboxChange, loading }) {
-  const defaultPosition = [20, 0]; // Centered around the world (Atlantic Ocean)
+function Map({ geojson, onBboxChange, center }) {
   const features = (geojson?.features || []).slice(0, 1000); // Limit markers for performance
+
+  // Track which marker popup is open
+  const [openPopupIdx, setOpenPopupIdx] = useState(null);
+
+  // Reset open popup when features change
+  useEffect(() => {
+    setOpenPopupIdx(null);
+  }, [features]);
 
   const countryMap = {
     "US": "United States", "CN": "China", "IN": "India", "RU": "Russia", "GB": "United Kingdom",
@@ -150,14 +167,15 @@ function Map({ geojson, onBboxChange, loading }) {
   };
 
   return (
-    <MapContainer center={defaultPosition} zoom={4} style={{ height: '500px', width: '100%', borderRadius: '12px' }}>
+    <MapContainer center={center} zoom={4} style={{ height: '500px', width: '100%', borderRadius: '12px' }}>
       <MapEventHandler onBboxChange={onBboxChange} />
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {features.map((feature, idx) => {
+      {features.map((feature) => {
         const [lon, lat] = feature.geometry.coordinates;
+        const idx = `${feature.properties.id}-${feature.properties.tone}-${lat}-${lon}`; // Unique key for each marker
         const properties = feature.properties || {};
         const countryFullName = countryMap[properties.country] || properties.country || 'Unknown';
         const toneDescription = getToneDescription(properties.tone);
@@ -170,20 +188,24 @@ function Map({ geojson, onBboxChange, loading }) {
         const theme = actor1Name + (actor2Name ? ` vs ${actor2Name}` : '') + ` - ${eventType}`;
 
         return (
-          <Marker key={idx} position={[lat, lon]}>
-            <Popup>
-              <div style={{ minWidth: 200, padding: '8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>
-                  {theme}
+          <Marker key={idx} position={[lat, lon]} eventHandlers={{
+            click: () => setOpenPopupIdx(idx)
+          }}>
+            
+              <Popup onClose={() => setOpenPopupIdx(null)}>
+                <div style={{ minWidth: 200, padding: '8px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '8px', color: '#333' }}>
+                    {theme}
+                  </div>
+                  <div style={{ marginBottom: '4px' }}><strong>Country:</strong> {countryFullName}</div>
+                  <div style={{ marginBottom: '4px' }}><strong>Tone:</strong> {toneDescription} ({properties.tone})</div>
+                  <div style={{ marginBottom: '4px' }}><strong>Time:</strong> {formattedTime}</div>
+                  {properties.actor1 && <div style={{ marginBottom: '4px' }}><strong>Actor 1:</strong> {properties.actor1}</div>}
+                  {properties.actor2 && <div style={{ marginBottom: '4px' }}><strong>Actor 2:</strong> {properties.actor2}</div>}
+                  {properties.lang && <div style={{ marginBottom: '4px' }}><strong>Language:</strong> {properties.lang}</div>}
                 </div>
-                <div style={{ marginBottom: '4px' }}><strong>Country:</strong> {countryFullName}</div>
-                <div style={{ marginBottom: '4px' }}><strong>Tone:</strong> {toneDescription} ({properties.tone})</div>
-                <div style={{ marginBottom: '4px' }}><strong>Time:</strong> {formattedTime}</div>
-                {properties.actor1 && <div style={{ marginBottom: '4px' }}><strong>Actor 1:</strong> {properties.actor1}</div>}
-                {properties.actor2 && <div style={{ marginBottom: '4px' }}><strong>Actor 2:</strong> {properties.actor2}</div>}
-                {properties.lang && <div style={{ marginBottom: '4px' }}><strong>Language:</strong> {properties.lang}</div>}
-              </div>
-            </Popup>
+              </Popup>
+         
           </Marker>
         );
       })}
@@ -516,6 +538,7 @@ function Toolbar({ params, setParams, onRefresh }) {
 
 // Search Results Component
 function SearchResults({ data }) {
+  
   return (
     <div style={{ background: '#ffffff', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -538,13 +561,13 @@ function SearchResults({ data }) {
           <tbody>
             {(data?.items || []).map((item, idx) => (
               <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', transition: 'background-color 0.2s ease', background: '#ffffff' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#f8fafc'} onMouseLeave={(e) => e.target.style.backgroundColor = '#ffffff'}>
-                <td style={{ padding: '10px 8px', color: '#64748b', fontSize: '12px' }}>{item['@timestamp'] ? new Date(item['@timestamp']).toLocaleDateString() : '-'}</td>
-                <td style={{ padding: '10px 8px', fontWeight: '500', fontSize: '12px', color: '#374151' }}>{item.actor1 || '-'}</td>
+                <td style={{ padding: '10px 8px', color: '#64748b', fontSize: '12px' }}>{item['@timestamp'] ? new Date(item._source['@timestamp']).toLocaleDateString() : '-'}</td>
+                <td style={{ padding: '10px 8px', fontWeight: '500', fontSize: '12px', color: '#374151' }}>{item._source.actor1 || '-'}</td>
                 <td style={{ padding: '10px 8px' }}>
-                  <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '500' }}>{item.country || '-'}</span>
+                  <span style={{ background: '#dbeafe', color: '#1e40af', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '500' }}>{item._source.country || '-'}</span>
                 </td>
                 <td style={{ padding: '10px 8px' }}>
-                  <span style={{ background: '#f3e8ff', color: '#7c3aed', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '500' }}>{item.theme || '-'}</span>
+                  <span style={{ background: '#f3e8ff', color: '#7c3aed', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: '500' }}>{item._source.theme || '-'}</span>
                 </td>
                 <td style={{ padding: '10px 8px', color: '#9ca3af', fontSize: '11px' }}>{item.source_file ? item.source_file.split('/').pop() : '-'}</td>
               </tr>
@@ -606,7 +629,9 @@ function Dashboard() {
   const { data: searchData, loading: searchLoading, error: searchError } = useFetch(searchUrl);
 
   // Handle map movement
-  const handleMapMove = (bbox) => {
+  const handleMapMove = (bbox, center) => {
+    
+    setMapCenter(center);
     setParams(prev => ({ ...prev, bbox }));
   };
 
@@ -615,6 +640,7 @@ function Dashboard() {
     setRefreshKey(prev => prev + 1);
   };
 
+ const [mapCenter, setMapCenter] = useState([20, 0]); // Default center [lat, lon]
   return (
     <div className="dashboard-container">
       <Toolbar
@@ -630,7 +656,7 @@ function Dashboard() {
             {mapLoading && <div className="chart-placeholder">Loading map data...</div>}
             {mapError && <div className="chart-placeholder">Failed to load map data: {mapError.message}</div>}
             {mapData && (
-              <Map geojson={mapData} onBboxChange={handleMapMove} loading={mapLoading} />
+              <Map geojson={mapData} onBboxChange={handleMapMove} center={mapCenter}/>
             )}
           </div>
 

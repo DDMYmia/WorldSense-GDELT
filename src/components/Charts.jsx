@@ -65,7 +65,7 @@ export function CountryDistributionChart({ data, searchData }) {
   if (searchData && searchData.items && searchData.items.length > 0) {
     const countryCount = {};
     searchData.items.forEach(item => {
-      const country = item.country || 'Unknown';
+      const country = item._source?.country || 'Unknown';
       countryCount[country] = (countryCount[country] || 0) + 1;
     });
 
@@ -95,7 +95,7 @@ export function CountryDistributionChart({ data, searchData }) {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => [`${value} events`, 'Event Count']} />
+            <Tooltip formatter={(value, name) => { return [`${name} has ${value} events`, 'Event Count']}} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -142,7 +142,7 @@ export function ToneAnalysisChart({ data, searchData }) {
   if (searchData && searchData.items && searchData.items.length > 0) {
     const toneRanges = { negative: 0, neutral: 0, positive: 0 };
     searchData.items.forEach(item => {
-      const tone = item.tone || 0;
+      const tone = item?._source.tone || 0;
       if (tone < -2) toneRanges.negative++;
       else if (tone > 2) toneRanges.positive++;
       else toneRanges.neutral++;
@@ -228,6 +228,7 @@ export function ToneAnalysisChart({ data, searchData }) {
 export function ThemeHeatChart({ data, searchData }) {
   // Try to use search data first for real theme analysis
   if (searchData && searchData.items && searchData.items.length > 0) {
+    
     const themeCount = {};
     searchData.items.forEach(item => {
       const theme = item.theme || 'General';
