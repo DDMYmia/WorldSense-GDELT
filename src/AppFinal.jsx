@@ -755,8 +755,8 @@ function Dashboard() {
         <div className="stats-container">
           <StatsCards data={statsData} />
           <EventTrendChart data={statsData} />
-          <CountryDistributionChart data={statsData} searchData={searchData} />
-          <ToneAnalysisChart data={statsData} searchData={searchData} />
+          <CountryDistributionChart data={statsData} searchData={searchData} mapData={mapData}/>
+          <ToneAnalysisChart data={statsData} searchData={searchData} mapData={mapData}/>
           <ThemeHeatChart data={statsData} searchData={searchData} />
         </div>
       </div>
