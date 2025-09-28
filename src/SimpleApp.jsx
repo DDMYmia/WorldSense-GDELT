@@ -11,7 +11,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const API_BASE = "https://8p15o14kp9.execute-api.us-east-1.amazonaws.com";
+const API_BASE = "https://82z3xjob1g.execute-api.us-east-1.amazonaws.com/prod";
 
 console.log('App Version: 2.7.0 - Complete Frontend with Login');
 console.log('Build Time:', new Date().toISOString());

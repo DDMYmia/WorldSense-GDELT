@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { signIn, signUp, signOut, getCurrentUser } from 'aws-amplify/auth';
+import { signIn, signUp, signOut, getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
 import './styles/charts.css';
 import './styles/layout.css';
 
@@ -18,6 +18,9 @@ import {
   StatsCards
 } from './components/Charts';
 
+// Import login prompt modal
+import LoginPromptModal from './components/LoginPromptModal';
+
 // Fix Leaflet icon issues using CDN
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -26,7 +29,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://82z3xjob1g.execute-api.us-east-1.amazonaws.com/prod';
 console.log('API_BASE:', API_BASE);
 console.log('App Version: 3.0.0 - Final Clean Version');
 console.log('Build Time:', new Date().toISOString());
@@ -214,7 +217,7 @@ function Map({ geojson, onBboxChange, center }) {
 }
 
 // Toolbar Component
-function Toolbar({ params, setParams, onRefresh }) {
+function Toolbar({ params, setParams, onRefresh, onShowLoginPrompt, onLoginStateChange }) {
   const [gte, setGte] = useState(params.gte);
   const [lte, setLte] = useState(params.lte);
   const [bbox, setBbox] = useState(params.bbox);
@@ -266,6 +269,7 @@ function Toolbar({ params, setParams, onRefresh }) {
       setIsLoggedIn(true);
       setEmail('');
       setPassword('');
+      onLoginStateChange && onLoginStateChange(true);
     } catch (error) {
       setError(error.message);
     } finally {
@@ -284,11 +288,24 @@ function Toolbar({ params, setParams, onRefresh }) {
         password,
         options: {
           userAttributes: {
-            email
+            email,
+            name: email.split('@')[0] // Use email prefix as default name
           }
         }
       });
-      setError('Registration successful! Please check your email to confirm.');
+      
+      // Auto sign in after successful registration
+      try {
+        const result = await signIn({ username: email, password });
+        setUser(result);
+        setIsLoggedIn(true);
+        setEmail('');
+        setPassword('');
+        onLoginStateChange && onLoginStateChange(true);
+        setError('Registration and login successful!');
+      } catch (signInError) {
+        setError('Registration successful! Please sign in manually.');
+      }
     } catch (error) {
       setError(error.message);
     } finally {
@@ -303,6 +320,10 @@ function Toolbar({ params, setParams, onRefresh }) {
       setUser(null);
       setEmail('');
       setPassword('');
+      // Clear localStorage for persistence
+      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('userEmail');
+      onLoginStateChange && onLoginStateChange(false);
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -595,6 +616,11 @@ function Dashboard() {
     q: ""
   });
   const [refreshKey, setRefreshKey] = useState(0); // Used to force data refresh
+  
+  // Login prompt modal state
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [hasShownLoginPrompt, setHasShownLoginPrompt] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Build API URLs
   const mapUrl = useMemo(() => {
@@ -640,6 +666,58 @@ function Dashboard() {
     setRefreshKey(prev => prev + 1);
   };
 
+  // Check login state on mount with persistence
+  useEffect(() => {
+    const checkAuthState = async () => {
+      try {
+        const user = await getCurrentUser();
+        const attributes = await fetchUserAttributes();
+        setIsLoggedIn(true);
+        // Store login state in localStorage for persistence
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userEmail', attributes.email || '');
+        console.log('User authenticated:', user);
+      } catch (error) {
+        setIsLoggedIn(false);
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('userEmail');
+        console.log('User not authenticated');
+      }
+    };
+    checkAuthState();
+  }, []);
+
+  // Show login prompt after a delay (only if not logged in)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasShownLoginPrompt && !isLoggedIn) {
+        setShowLoginPrompt(true);
+        setHasShownLoginPrompt(true);
+      }
+    }, 3000); // Show after 3 seconds
+
+    return () => clearTimeout(timer);
+  }, [hasShownLoginPrompt, isLoggedIn]);
+
+  // Handle login from modal
+  const handleModalLogin = async (email, password) => {
+    try {
+      // Update login state
+      setIsLoggedIn(true);
+      setShowLoginPrompt(false);
+      // Store login state in localStorage for persistence
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
+  };
+
+  // Close login prompt
+  const handleCloseLoginPrompt = () => {
+    setShowLoginPrompt(false);
+  };
+
  const [mapCenter, setMapCenter] = useState([20, 0]); // Default center [lat, lon]
   return (
     <div className="dashboard-container">
@@ -647,6 +725,15 @@ function Dashboard() {
         params={params}
         setParams={setParams}
         onRefresh={handleRefresh}
+        onShowLoginPrompt={() => setShowLoginPrompt(true)}
+        onLoginStateChange={(loggedIn) => setIsLoggedIn(loggedIn)}
+      />
+      
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginPrompt}
+        onClose={handleCloseLoginPrompt}
+        onLogin={handleModalLogin}
       />
 
       <div className="dashboard-content">
