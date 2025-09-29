@@ -2,118 +2,41 @@ name: Deploy WorldSense-GDELT to AWS
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Deployment environment'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-        - dev
-        - staging
-        - prod
 
-env:
-  AWS_REGION: us-east-1
-  AWS_ACCOUNT_ID: 810731468776
 
 jobs:
-  test:
-    name: Run Tests
+  deploy:
     runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup AWS CLI
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-        
-    - name: Run system tests
-      run: |
-        chmod +x test-system.sh
-        ./test-system.sh
 
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Run security scan
-      uses: securecodewarrior/github-action-security-scan@main
-      with:
-        language: python
-        files:
-          **/*.py
-          **/*.sh
+      uses: actions/checkout@v3
 
-  deploy-dev:
-    name: Deploy to Development
-    needs: [test, security-scan]
-    if: github.ref == 'refs/heads/develop' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
-    runs-on: ubuntu-latest
-    environment: development
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup AWS CLI
-      uses: aws-actions/configure-aws-credentials@v4
+    - name: node.js setup
+      uses: actions/setup-node@v3
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
-        aws-region: ${{ env.AWS_REGION }}
-        
-    - name: Deploy to Development
-      run: |
-        echo "🚀 Deploying to Development Environment"
-        ./scripts/deploy.sh dev
+        node-version: '20'
 
-  deploy-prod:
-    name: Deploy to Production
-    needs: [test, security-scan]
-    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
-    runs-on: ubuntu-latest
-    environment: production
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup AWS CLI
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-        
-    - name: Deploy to Production
+    - name: Install dependencies
+      run: npm install
+
+    - name: Build Vite app
+      run: npm run build
+
+    - name: deploy to S3
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        S3_BUCKET: ${{ secrets.S3_BUCKET }}
       run: |
-        echo "🚀 Deploying to Production Environment"
-        ./scripts/deploy.sh prod
-        
-    - name: Run production validation
-      run: |
-        echo "✅ Running production validation tests"
-        ./test-system.sh
-        
-    - name: Notify deployment success
-      if: success()
-      run: |
-        echo "🎉 Deployment to production completed successfully!"
-        
-    - name: Notify deployment failure
-      if: failure()
-      run: |
-        echo "❌ Deployment to production failed!"
-        # Here you can add Slack notifications or other alerting mechanisms
+        aws s3 sync dist/ s3://my-worldsense-bucket --delete
+    - name: Invalidate CloudFront Cache
+      uses: chetan/invalidate-cloudfront-action@v2
+      env:
+        DISTRIBUTION: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        PATHS: "/*"
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
