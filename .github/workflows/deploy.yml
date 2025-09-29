@@ -32,3 +32,8 @@ jobs:
         S3_BUCKET: ${{ secrets.S3_BUCKET }}
       run: |
         aws s3 sync dist/ s3://my-worldsense-bucket --delete
+    - name: Invalidate CloudFront Cache
+      uses: chetan/invalidate-cloudfront-action@v2
+      with:
+        distribution-id: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        paths: "/*" # Invalidate all paths
