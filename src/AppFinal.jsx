@@ -758,8 +758,9 @@ function Dashboard() {
 
   // Load liked events from IndexedDB on mount
   useEffect(() => {
-    
     if (!localStorage.getItem('userEmail')) return;
+    if (!isLoggedIn) return;
+    
     const request = window.indexedDB.open(getDBName(), 1);
     request.onupgradeneeded = function(e) {
       const db = e.target.result;
