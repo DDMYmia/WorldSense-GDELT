@@ -1,5 +1,5 @@
 # WorldSense-GDELT Project
-
+[![Deploy WorldSense-GDELT to AWS](https://github.com/DDMYmia/WorldSense-GDELT/actions/workflows/deploy.yml/badge.svg)](https://github.com/DDMYmia/WorldSense-GDELT/actions/workflows/deploy.yml)
 ## Project Overview
 
 WorldSense-GDELT is a global event perception and analysis platform built on AWS, utilizing GDELT datasets to provide real-time event monitoring and analysis services through interactive web interfaces.
