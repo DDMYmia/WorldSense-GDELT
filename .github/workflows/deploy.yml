@@ -51,4 +51,4 @@ jobs:
         run: |
           aws lambda update-function-code \
             --function-name myLambdaFunction \
-            --zip-file fileb://function.zip
+            --zip-file fileb:///example/api/function.zip
