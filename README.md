@@ -562,3 +562,4 @@ Frontend Display → CloudFront + S3 (SPA)
 ---
 
 *Version: 0.1.1 | Last updated: 2025-09-27 | AWS Account: 810731468776 | Region: us-east-1*
+
