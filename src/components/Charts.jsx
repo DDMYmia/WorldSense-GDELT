@@ -60,12 +60,52 @@ export function EventTrendChart({ data }) {
 }
 
 // Country Event Distribution Pie Chart
-export function CountryDistributionChart({ data, searchData }) {
+export function CountryDistributionChart({ data, searchData, mapData }) {
+  if (mapData?.features && mapData.features.length > 0) {
+   const countryCount = {};
+    mapData.features.forEach(item => {
+      const country = item.properties?.country || 'Unknown';
+      countryCount[country] = (countryCount[country] || 0) + 1;
+    });
+
+    const topCountries = Object.entries(countryCount)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 16)
+      .map(([name, value]) => ({ name, value }));
+
+    const COLORS = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#43e97b', '#f093fb', '#a8e6cf'];
+
+    return (
+      <div className="chart-container">
+        <h3>🌍 Country Event Distribution</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={topCountries}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, value }) => `${name} (${value})`}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey="value"
+            >
+              {topCountries.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip formatter={(value, name) => { return [`${name} has ${value} events`, 'Event Count']}} />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
   // Try to use search data first for detailed country breakdown
   if (searchData && searchData.items && searchData.items.length > 0) {
     const countryCount = {};
     searchData.items.forEach(item => {
-      const country = item.country || 'Unknown';
+      const country = item._source?.country || 'Unknown';
       countryCount[country] = (countryCount[country] || 0) + 1;
     });
 
@@ -95,7 +135,7 @@ export function CountryDistributionChart({ data, searchData }) {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => [`${value} events`, 'Event Count']} />
+            <Tooltip formatter={(value, name) => { return [`${name} has ${value} events`, 'Event Count']}} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -137,12 +177,54 @@ export function CountryDistributionChart({ data, searchData }) {
 }
 
 // Tone Analysis Bar Chart
-export function ToneAnalysisChart({ data, searchData }) {
+export function ToneAnalysisChart({ data, searchData, mapData }) {
+  if (mapData && mapData.features && mapData.features.length > 0) {
+    const toneRanges = { negative: 0, neutral: 0, positive: 0 };
+    
+    mapData.features.forEach(item => {
+      const tone = item?.properties.tone || 0;
+      if (tone < -2) toneRanges.negative++;
+      else if (tone > 2) toneRanges.positive++;
+      else toneRanges.neutral++;
+    });
+
+    const chartData = [
+      { name: 'Negative', value: toneRanges.negative, color: '#f5576c' },
+      { name: 'Neutral', value: toneRanges.neutral, color: '#4facfe' },
+      { name: 'Positive', value: toneRanges.positive, color: '#43e97b' }
+    ];
+
+    return (
+      <div className="chart-container">
+        <h3>😊 Tone Analysis</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+            <YAxis tick={{ fontSize: 12 }} />
+            <Tooltip
+              formatter={(value) => [`${value} events`, 'Event Count']}
+              labelFormatter={(value) => `Tone: ${value}`}
+            />
+            <Bar
+              dataKey="value"
+              radius={[4, 4, 0, 0]}
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
   // Try to use search data first for detailed tone analysis
   if (searchData && searchData.items && searchData.items.length > 0) {
     const toneRanges = { negative: 0, neutral: 0, positive: 0 };
     searchData.items.forEach(item => {
-      const tone = item.tone || 0;
+      const tone = item?._source.tone || 0;
       if (tone < -2) toneRanges.negative++;
       else if (tone > 2) toneRanges.positive++;
       else toneRanges.neutral++;
@@ -228,6 +310,7 @@ export function ToneAnalysisChart({ data, searchData }) {
 export function ThemeHeatChart({ data, searchData }) {
   // Try to use search data first for real theme analysis
   if (searchData && searchData.items && searchData.items.length > 0) {
+    
     const themeCount = {};
     searchData.items.forEach(item => {
       const theme = item.theme || 'General';
@@ -277,9 +360,9 @@ export function ThemeHeatChart({ data, searchData }) {
 
   const totalEvents = data.series.reduce((sum, item) => sum + item.count, 0);
   const themes = [
-    { theme: 'Global Events', heat: Math.round(totalEvents * 0.6), intensity: 'High' },
-    { theme: 'Regional News', heat: Math.round(totalEvents * 0.25), intensity: 'Medium' },
-    { theme: 'Local Stories', heat: Math.round(totalEvents * 0.15), intensity: 'Low' }
+    { theme: 'Global Events', heat: Math.round(totalEvents * 0.6), intensity: 'High', key: 1 },
+    { theme: 'Regional News', heat: Math.round(totalEvents * 0.25), intensity: 'Medium', key: 2, },
+    { theme: 'Local Stories', heat: Math.round(totalEvents * 0.15), intensity: 'Low', key: 3 }
   ];
 
   return (

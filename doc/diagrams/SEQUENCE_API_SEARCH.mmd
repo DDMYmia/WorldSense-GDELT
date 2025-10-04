@@ -1,0 +1,19 @@
+sequenceDiagram
+  participant User as Browser
+  participant CF as CloudFront
+  participant APIV2 as API Gateway v2
+  participant L as Lambda gdelt-api
+  participant OS as OpenSearch Domain
+  participant SM as Secrets Manager
+
+  User->>CF: GET /prod/search?q=...
+  CF->>APIV2: Forward request
+  APIV2->>L: Invoke (payload v2.0)
+  L->>SM: Get secret opensearch/worldsense/indexer
+  SM-->>L: Credentials
+  L->>OS: Query index alias gdelt-lab-v1
+  OS-->>L: Results
+  L-->>APIV2: 200 OK (JSON)
+  APIV2-->>CF: Response
+  CF-->>User: Cached/Origin response
+

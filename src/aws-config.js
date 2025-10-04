@@ -17,7 +17,7 @@ const awsConfig = {
   API: {
     REST: {
       WorldSenseAPI: {
-        endpoint: import.meta.env.VITE_API_BASE || 'https://8p15o14kp9.execute-api.us-east-1.amazonaws.com',
+        endpoint: import.meta.env.VITE_API_BASE || 'https://82z3xjob1g.execute-api.us-east-1.amazonaws.com/prod',
         region: import.meta.env.VITE_AWS_REGION || 'us-east-1',
       },
     },

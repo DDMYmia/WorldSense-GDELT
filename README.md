@@ -1,5 +1,5 @@
 # WorldSense-GDELT Project
-
+[![Deploy WorldSense-GDELT to AWS](https://github.com/DDMYmia/WorldSense-GDELT/actions/workflows/deploy.yml/badge.svg)](https://github.com/DDMYmia/WorldSense-GDELT/actions/workflows/deploy.yml)
 ## Project Overview
 
 WorldSense-GDELT is a global event perception and analysis platform built on AWS, utilizing GDELT datasets to provide real-time event monitoring and analysis services through interactive web interfaces.
@@ -56,7 +56,7 @@ WorldSense-GDELT is a global event perception and analysis platform built on AWS
 ## Overall Architecture
 
 ```
-[CloudFront (d7hwjrg2pdpoj.cloudfront.net)] → [API Gateway (gdelt-api)]
+[CloudFront (d7hwjrg2pdpoj.cloudfront.net)] → [API Gateway (worldsense-gdelt-api)]
      ↓                                              ↓
 [S3 Frontend (my-worldsense-bucket)]         [Lambda Functions]
      ↓                                              ↓
@@ -86,28 +86,27 @@ WorldSense-GDELT is a global event perception and analysis platform built on AWS
 
 #### S3 Storage Architecture
 - **Data Buckets**:
-  - gdelt-raw-worldsense (raw data storage)
   - gdelt-processed-worldsense (processed data storage)
 - **Frontend Bucket**: my-worldsense-bucket (CloudFront origin)
 - **Log Bucket**: aws-cloudtrail-logs-810731468776-c013728b
 
 #### OpenSearch Service
 - **Domain**: worldsense-gdelt-os-dev
-- **Cluster Configuration**: 3 x t3.small.search instances, Single AZ cost optimized
+- **Cluster Configuration**: 2 x t3.small.search data nodes, Single AZ cost optimized
 - **Storage**: 10GB GP3 EBS, 3000 IOPS, 125 MB/s throughput
-- **Dedicated Master Nodes**: 3 x t3.small.search
+- **Dedicated Master Nodes**: 2 x t3.small.search
 - **Access Policy**: Open to all principals (development environment)
 
 #### Lambda Functions
-- **gdelt-api** (Python 3.13): Main API function
-- **gdelt-indexer** (Python 3.13): Data indexing processing
-- **data-expander-2015** (Node.js 18.x): 2015 data expansion
-- **may-weekend-expander** (Node.js 18.x): Weekend data expansion
+- **gdelt-api** (Python 3.13): Main API function (512MB, 15s)
+- **gdelt-indexer** (Python 3.13): Data indexing processing (1024MB, 300s)
+- **gdelt-fetch-clean** (Python 3.13): Scheduled fetch & clean (512MB, 300s)
+- Legacy: **data-expander-2015** (Node.js 18.x): 2015 data expansion
 
 #### API Gateway
-- **API**: gdelt-api (ID: sqeg4ixx58)
-- **Type**: REST API
-- **Description**: GDELT API for WorldSense Dashboard
+- **HTTP API**: worldsense-gdelt-api (ID: 82z3xjob1g)
+- **Routes**: GET /search, GET /map, GET /stats
+- **Legacy REST API**: gdelt-api (ID: sqeg4ixx58)
 
 #### CloudFront Distribution
 - **Distribution ID**: E3MJ8UIOB3UH8Q
@@ -116,6 +115,12 @@ WorldSense-GDELT is a global event perception and analysis platform built on AWS
 
 #### Cognito User Authentication
 - **User Pool**: worldsense-users (ID: us-east-1_Wfn3se9zs)
+
+#### EventBridge
+- **Rule**: GDELTFetchEvery15min (ENABLED, rate(15 minutes))
+
+#### Secrets Manager
+- **Secret**: opensearch/worldsense/indexer
 
 #### CloudWatch Monitoring
 - **Alarms**: billing alert (billing monitoring)
@@ -344,7 +349,8 @@ Run automated testing scripts to verify system integrity:
 
 # Or manually verify core components
 curl -I https://d7hwjrg2pdpoj.cloudfront.net  # Frontend access test
-curl https://sqeg4ixx58.execute-api.us-east-1.amazonaws.com/prod  # API test
+curl "https://82z3xjob1g.execute-api.us-east-1.amazonaws.com/prod/search"  # HTTP API test
+curl https://sqeg4ixx58.execute-api.us-east-1.amazonaws.com/prod  # Legacy REST API
 ```
 
 #### Detailed Manual Verification Commands
@@ -433,9 +439,9 @@ frontend/
 - **Endpoint**: `search-worldsense-gdelt-os-dev-tfuw6rzu5dpjqqjfhsjy3lszxa.us-east-1.es.amazonaws.com`
 - **Version**: OpenSearch 2.19
 - **Instance Type**: t3.small.search
-- **Instance Count**: 3 data nodes
+- **Instance Count**: 2 data nodes
 - **Availability Zone**: Single AZ (cost optimized)
-- **Dedicated Master Nodes**: 3 x t3.small.search
+- **Dedicated Master Nodes**: 2 x t3.small.search
 - **Storage**: 10GB GP3 EBS (IOPS: 3000, Throughput: 125MB/s)
 - **Encryption**: Enabled (KMS + node-to-node encryption)
 - **Auto-Tune**: Disabled (cost optimized)
@@ -468,28 +474,22 @@ frontend/
   - `LOG_LEVEL`: DEBUG
 - **Role**: gdelt-indexer-role
 
-#### 3. **data-expander-2015** (Node.js 18.x)
-- **Purpose**: 2015 data expansion processing
-- **Memory**: 1024MB
+#### 3. **gdelt-fetch-clean** (Python 3.13)
+- **Purpose**: Scheduled fetch and clean (EventBridge every 15 minutes)
+- **Memory**: 512MB
 - **Timeout**: 300 seconds
-- **Package Size**: ~3.9MB (contains large data)
 - **Environment Variables**:
-  - `OPENSEARCH_ENDPOINT`: OpenSearch cluster endpoint
-  - `INDEX_NAME`: gdelt-lab-v1
-- **Role**: gdelt-api-role
+  - `PROC_BUCKET`: gdelt-processed-worldsense
+  - `OPENSEARCH_SECRET_NAME`: opensearch/worldsense/indexer
+- **Role**: gdelt-lambda-role
 
-#### 4. **may-weekend-expander** (Node.js 18.x)
-- **Purpose**: Weekend data expansion processing
-- **Memory**: 1024MB
-- **Timeout**: 300 seconds
-- **Role**: gdelt-api-role
+#### Legacy: **data-expander-2015** (Node.js 18.x)
+- Exists in account; not used by current pipeline
 
 ### 📊 Data Flow Architecture
 
 ```
-Raw Data → S3 (gdelt-raw-worldsense)
-    ↓
-Data Processing → Lambda (data-expander-*)
+Data Processing → Lambda (gdelt-fetch-clean)
     ↓
 Index Building → Lambda (gdelt-indexer)
     ↓
@@ -532,11 +532,17 @@ Frontend Display → CloudFront + S3 (SPA)
 ### 📋 Project Documentation
 
 - **[PROJECT_DOCUMENTATION.md](PROJECT_DOCUMENTATION.md)** - Complete English project documentation with all details from user assignment to deployment maintenance
+- **Diagrams (Mermaid)**:
+  - `doc/diagrams/ARCHITECTURE.mmd`
+  - `doc/diagrams/DATA_PIPELINE.mmd`
+  - `doc/diagrams/SEQUENCE_API_SEARCH.mmd`
+  - `doc/diagrams/SECURITY_OVERVIEW.mmd`
 
 ---
 
 ## Change Log
 
+<<<<<<< HEAD
 ### v0.1.2 (2025-10-01) - AWS Services Inventory and Shutdown Documentation
 
 #### 📋 Current Active AWS Services Inventory
@@ -661,3 +667,4 @@ Frontend Display → CloudFront + S3 (SPA)
 ---
 
 *Version: 0.1.1 | Last updated: 2025-09-27 | AWS Account: 810731468776 | Region: us-east-1*
+
