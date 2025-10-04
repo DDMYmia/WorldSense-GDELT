@@ -537,6 +537,102 @@ Frontend Display → CloudFront + S3 (SPA)
 
 ## Change Log
 
+### v0.1.2 (2025-10-01) - AWS Services Inventory and Shutdown Documentation
+
+#### 📋 Current Active AWS Services Inventory
+
+**Storage Services:**
+- **S3 Buckets** (3 total):
+  - `aws-cloudtrail-logs-810731468776-c013728b` - CloudTrail audit logs
+  - `gdelt-processed-worldsense` - Processed GDELT data storage
+  - `my-worldsense-bucket` - Frontend application hosting
+
+**Compute Services:**
+- **Lambda Functions** (4 total):
+  - `gdelt-fetch-clean` - Data fetching and cleaning (Python 3.13, 512MB)
+  - `gdelt-indexer` - Data indexing to OpenSearch (Python 3.13, 1024MB)
+  - `data-expander-2015` - 2015 data expansion (Node.js 18.x, 1024MB)
+  - `gdelt-api` - Main API endpoint (Python 3.13, 512MB)
+
+**Database & Search Services:**
+- **OpenSearch Domain** (1 total):
+  - `worldsense-gdelt-os-dev` - GDELT data search engine (t3.small x3 nodes, 10GB GP3)
+
+**API & Integration Services:**
+- **API Gateway HTTP API** (1 total):
+  - `worldsense-gdelt-api` (ID: 82z3xjob1g) - REST API for frontend integration
+
+**Content Delivery Services:**
+- **CloudFront Distribution** (1 total):
+  - `E3MJ8UIOB3UH8Q` - Global CDN (d7hwjrg2pdpoj.cloudfront.net)
+
+**Authentication Services:**
+- **Cognito User Pool** (1 total):
+  - `worldsense-users` (ID: us-east-1_Wfn3se9zs) - User authentication
+
+**Monitoring Services:**
+- **CloudWatch Alarms** (1 total):
+  - `billing alert` - Cost monitoring alarm ($3 threshold)
+
+**Identity & Access Management:**
+- **IAM Roles** (8 total):
+  - `gdelt-api-role`, `gdelt-api-role-1moc88uh` - API access roles
+  - `gdelt-indexer-role` - Data indexing role
+  - `gdelt-lambda-role` - Lambda execution role
+  - `gdelt-backfill-to-processed-role` - Data processing role
+  - `Project-Admin`, `Project-Developer`, `Project-Viewer` - Project management roles
+- **IAM Users** (3 total):
+  - `11111`, `ak1880@students.waikato.ac.nz`, `dean.mason@waikato.ac.nz`
+
+**Network Services:**
+- **Security Groups** (2 total):
+  - `launch-wizard-1` (sg-01514dd25e0d2689a)
+  - `default` (sg-0263b38fead525b65)
+
+#### 🚨 Services Shutdown Plan (In Progress)
+
+*Services will be shut down in reverse dependency order to avoid conflicts*
+
+**✅ Completed Shutdowns:**
+- **CloudFront Distribution**: `E3MJ8UIOB3UH8Q` - Disabled (deletion pending)
+- **API Gateway HTTP API**: `worldsense-gdelt-api` (ID: 82z3xjob1g) - Deleted
+- **Lambda Functions** (4 total): All deleted
+  - `gdelt-fetch-clean` ✅
+  - `gdelt-indexer` ✅
+  - `data-expander-2015` ✅
+  - `gdelt-api` ✅
+- **OpenSearch Domain**: `worldsense-gdelt-os-dev` - Deletion in progress
+- **Cognito User Pool**: `worldsense-users` (ID: us-east-1_Wfn3se9zs) - Deleted
+- **CloudWatch Alarms**: `billing alert` - Deleted
+- **IAM Roles**: Partial progress
+  - `gdelt-api-role` ✅ (policies detached and deleted)
+
+**⚠️ Partial Completion Status:**
+
+*Major services have been successfully shut down. Remaining cleanup requires manual intervention due to versioning complexities.*
+
+**✅ Successfully Shut Down:**
+- CloudFront Distribution (disabled, pending final deletion)
+- API Gateway HTTP API
+- All Lambda Functions (4 total)
+- OpenSearch Domain (deletion in progress)
+- Cognito User Pool
+- CloudWatch Alarms
+- Partial IAM Role cleanup
+
+**❌ Remaining Services (Require Manual Cleanup):**
+- **S3 Buckets** (3 total): Complex version cleanup needed
+  - `my-worldsense-bucket` - Frontend hosting (versioned objects)
+  - `gdelt-processed-worldsense` - Data storage
+  - `aws-cloudtrail-logs-810731468776-c013728b` - CloudTrail logs
+- **IAM Resources** (8 roles, 3 users): Policy detachment required
+- **Security Groups** (2 total): System default groups
+
+**💡 Cleanup Recommendations:**
+1. Use AWS Console for S3 bucket version cleanup (delete all versions and delete markers)
+2. Manually detach policies from remaining IAM roles before deletion
+3. System default security groups cannot be deleted but are harmless
+
 ### v0.1.1 (2025-09-27) - Frontend Code Update and GitHub Deployment
 
 * ✅ Merged remote repository changes with local frontend modifications
