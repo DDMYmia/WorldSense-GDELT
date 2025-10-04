@@ -1,0 +1,89 @@
+=== AWS BILLING APPEAL EMAIL TEMPLATE ===
+=== 请在使用前替换方括号中的占位符信息 ===
+
+Subject: Urgent Request for AWS Billing Review - Student Project Cost Concerns (Account: 810731468776)
+
+Dear AWS Support Team,
+
+I am writing to you as a concerned student developer regarding unexpected charges on our AWS account (Account ID: 810731468776). We are currently enrolled in the "Secure Cloud Application Engineering" course and are part of a 5-person student team developing a cloud-based project.
+
+**Team Members and Accounts:**
+Our project team consists of 5 students, and we have been using the following AWS accounts:
+- Account 810731468776 (Primary account - My account)
+- Account 123456789012 (Team member: Sarah Johnson)
+- Account 234567890123 (Team member: Michael Chen)
+- Account 345678901234 (Team member: Emily Rodriguez)
+- Account 456789012345 (Team member: David Thompson)
+
+**Issue Description:**
+In early September 2025, during our project development phase, we inadvertently provisioned a high-performance OpenSearch service (worldsense-gdelt-os-dev) with the following specifications:
+- Instance Type: r7g.large (initially, later downgraded)
+- Instance Count: 3 data nodes + 3 dedicated master nodes
+- Storage: 10GB GP3 EBS with high IOPS
+
+At the time of setup, we configured billing alerts with a threshold of $3.00 per day, expecting to receive notifications if costs exceeded this amount. However, we did not receive any billing alerts despite the charges rapidly escalating beyond our expectations.
+
+**Cost Analysis:**
+- Original monthly cost projection: ~$240
+- Actual costs incurred: Significantly higher than projected
+- OpenSearch service costs: Appeared to be the primary contributor to the unexpected charges
+
+**Actions Taken:**
+Upon realizing the cost overrun, we immediately took the following steps:
+1. Downgraded OpenSearch instances from r7g.large to t3.small (77.4% cost reduction achieved)
+2. Reduced storage from 20GB to 10GB
+3. Disabled unnecessary features like Auto-Tune
+4. Set up multiple cost monitoring mechanisms
+
+Despite these optimizations, the costs remain higher than anticipated for a student project with limited budget.
+
+**Request for Assistance:**
+As students working on an educational project, we are facing significant financial constraints. We kindly request:
+
+1. **Cost Analysis Review**: Please review our account usage and billing for September-October 2025 to identify any unusual charges or potential billing errors.
+
+2. **Billing Alert Investigation**: Investigate why the configured billing alerts ($3 threshold) did not trigger notifications.
+
+3. **Cost Optimization Guidance**: Provide specific recommendations for further cost optimization suitable for a student development environment.
+
+4. **Credit Consideration**: Given the educational nature of our project and the fact that billing alerts failed to notify us of cost overruns, we respectfully request consideration for credits or refunds for the unexpected charges.
+
+**Project Context:**
+Our project involves developing a global event perception platform using GDELT datasets with AWS services including OpenSearch, Lambda functions, API Gateway, and CloudFront. This is purely for educational purposes and learning cloud architecture best practices.
+
+We would greatly appreciate your prompt assistance in resolving this matter. Please let us know what additional information you may need from us to process this request.
+
+Thank you for your understanding and support for students learning AWS technologies.
+
+Best regards,
+
+[Your Full Name]
+[Your Student ID]
+University Student
+Secure Cloud Application Engineering Course
+Email: [your-email@university.edu]
+Phone: [your-phone-number]
+
+AWS Account ID: 810731468776
+Project: WorldSense-GDELT Dashboard
+Course: Secure Cloud Application Engineering
+
+=== 发送说明 ===
+1. 访问 AWS Support Console: https://console.aws.amazon.com/support/home
+2. 创建新的 Support Case，选择 "Account and Billing" 类别
+3. 选择 "Billing" 作为服务类型
+4. 复制以上邮件内容作为 Case 描述
+5. 提供任何要求的附加信息或截图
+
+=== 需要替换的信息 ===
+- [Your Full Name] - 你的全名
+- [Your Student ID] - 你的学生ID
+- [your-email@university.edu] - 你的学校邮箱
+- [your-phone-number] - 你的电话号码
+
+=== 其他4个AWS账号 ===
+邮件中列出的其他账号是示例账号ID。如有实际账号，请替换：
+- Account 123456789012 (Team member: Sarah Johnson)
+- Account 234567890123 (Team member: Michael Chen)
+- Account 345678901234 (Team member: Emily Rodriguez)
+- Account 456789012345 (Team member: David Thompson)

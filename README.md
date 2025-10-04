@@ -641,6 +641,9 @@ Frontend Display → CloudFront + S3 (SPA)
 2. Manually detach policies from remaining IAM roles before deletion
 3. System default security groups cannot be deleted but are harmless
 
+**💰 Billing Appeal Resources:**
+4. **AWS Billing Appeal Email Template** (`aws_billing_appeal_email.txt`) - Professional appeal letter for unexpected OpenSearch charges
+
 ### v0.1.1 (2025-09-27) - Frontend Code Update and GitHub Deployment
 
 * ✅ Merged remote repository changes with local frontend modifications
