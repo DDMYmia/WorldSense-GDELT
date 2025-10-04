@@ -542,8 +542,10 @@ Frontend Display → CloudFront + S3 (SPA)
 
 ## Change Log
 
-<<<<<<< HEAD
 ### v0.1.2 (2025-10-01) - AWS Services Inventory and Shutdown Documentation
+
+* ✅ **OpenSearch Domain (worldsense-gdelt-os-dev) - CONFIRMED FULLY DELETED**
+* ✅ **Updated service shutdown status in documentation**
 
 #### 📋 Current Active AWS Services Inventory
 
@@ -621,7 +623,7 @@ Frontend Display → CloudFront + S3 (SPA)
 - CloudFront Distribution (disabled, pending final deletion)
 - API Gateway HTTP API
 - All Lambda Functions (4 total)
-- OpenSearch Domain (deletion in progress)
+- **OpenSearch Domain (worldsense-gdelt-os-dev) - ✅ FULLY DELETED**
 - Cognito User Pool
 - CloudWatch Alarms
 - Partial IAM Role cleanup
